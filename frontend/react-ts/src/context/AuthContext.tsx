@@ -11,14 +11,14 @@ import {
     logout: () => void;
   }
   
-  // Create the context
+  // Context object to hold our auth data
   const AuthContext = createContext<AuthContextValue>({
     token: null,
     login: () => {},
     logout: () => {},
   });
   
-  // The provider component to wrap the app
+  // The provider component to wrap the app, so that it can provide the 'global data' to its children
   export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Initialize state with whatever is in localStorage, if any
