@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, RequestHandler } from "express";
 import "dotenv/config";
+import cors from "cors";
 import authRouter from "../routes/authRoutes";
 import adminRouter from "../routes/adminRoutes";
 import boardRouter from "../routes/boardRoutes";
@@ -8,6 +9,15 @@ import cardRouter from "../routes/cardRoutes";
 import connectDB from "../config/db";
 
 const app: Express = express();
+
+// CORS Configuration
+app.use(
+  cors({
+    origin: "http://localhost:5000", // allow request from frontend
+    credentials: true, // Allow cookies/auth ehaders
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const port = process.env.PORT || 5000;
