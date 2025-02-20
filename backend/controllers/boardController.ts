@@ -15,8 +15,11 @@ export const getBoards = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Fetch boards that belong to this user
-    const boards = await Board.find({ userId }).populate("columns");
+    // Fetch boards that belong to this user, and populate with columns and their cards
+    const boards = await Board.find({ userId }).populate({
+      path: "columns",
+      populate: { path: "cards" },
+    });
 
     res.status(200).json({ boards });
     return;
@@ -27,6 +30,7 @@ export const getBoards = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// NOT CURRENTLY IN USE
 // @desc    Get a single board by ID
 // @route   GET /api/boards/:boardId
 // @access  Private (user)
@@ -35,7 +39,7 @@ export const getBoardById = async (req: AuthRequest, res: Response) => {
     const { boardId } = req.params;
     const userId = req.userId;
 
-    // Find the board and ensure ownership
+    // Fetch a board that belong to this user, and populate with columns and their cards
     const board = await Board.findOne({ _id: boardId, userId }).populate({
       path: "columns",
       populate: { path: "cards" },

@@ -3,7 +3,9 @@ export interface ICard {
   title: string;
   description: string;
   columnId: string;
-  // Possibly: order, color, createdAt, updatedAt
+  order?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IColumn {

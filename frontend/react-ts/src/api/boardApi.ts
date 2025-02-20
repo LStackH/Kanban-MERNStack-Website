@@ -1,3 +1,5 @@
+// API hub for board api calls
+
 import { axiosInstance } from "./axiosConfig";
 import { IBoard } from "../types/kanbanTypes";
 

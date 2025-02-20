@@ -18,3 +18,15 @@ export async function createColumn(
   } as CreateColumnPayload);
   return response.data.column;
 }
+
+export async function updateColumn(
+  columnId: string,
+  payload: Partial<IColumn>
+): Promise<IColumn> {
+  const response = await axiosInstance.put(`/columns/${columnId}`, payload);
+  return response.data.column;
+}
+
+export async function deleteColumn(columnId: string): Promise<void> {
+  await axiosInstance.delete(`/columns/${columnId}`);
+}
