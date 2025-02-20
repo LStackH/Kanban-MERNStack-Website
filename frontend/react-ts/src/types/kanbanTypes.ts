@@ -13,7 +13,9 @@ export interface IColumn {
   name: string;
   boardId: string;
   cards: ICard[];
-  // Possibly: order, createdAt, updatedAt
+  order?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IBoard {

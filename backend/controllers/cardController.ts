@@ -32,10 +32,15 @@ export const createCard = async (req: AuthRequest, res: Response) => {
       return;
     }
 
+    // Determine the new order: count current cards
+    const currentCards = await Card.find({ columnId: column._id });
+    const newOrder = currentCards.length;
+
     const newCard = await Card.create({
       title,
       description: description || "",
       columnId: column._id,
+      order: newOrder, // give an order number, so that we can track it when reordering in frontend
     });
 
     // Add card to column
@@ -51,7 +56,7 @@ export const createCard = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// @desc    Update (move/rename) a card
+// @desc    Update (rename) a card
 // @route   PUT /api/cards/:cardId
 // @access  Private (user)
 export const updateCard = async (req: AuthRequest, res: Response) => {
@@ -135,6 +140,39 @@ export const updateCard = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// @desc    Update cards order
+// @route   PUT /api/cards/order/:columnId
+// @access  Private (user)
+export const updateCardOrder = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    const { columnId } = req.params;
+    const { cards } = req.body; // expected format: [{ id: string, order: number }, ...]
+
+    // Check column exists and board ownership
+    const column = await Column.findById(columnId);
+    if (!column) {
+      res.status(404).json({ error: "Column not found" });
+      return;
+    }
+    const board = await Board.findOne({ _id: column.boardId, userId });
+    if (!board) {
+      res.status(403).json({ error: "Not authorized" });
+      return;
+    }
+
+    // Update each card's order
+    for (const card of cards) {
+      await Card.findByIdAndUpdate(card.id, { order: card.order });
+    }
+
+    res.status(200).json({ message: "Card order updated successfully" });
+  } catch (error) {
+    console.error("Error updating card order:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 // @desc    Delete a card
 // @route   DELETE /api/cards/:cardId
 // @access  Private (user)
@@ -169,6 +207,15 @@ export const deleteCard = async (req: AuthRequest, res: Response) => {
 
     // Delete card
     await card.deleteOne();
+
+    // Recalculate order for remaining cards in the column
+    const remainingCards = await Card.find({ columnId: column._id }).sort(
+      "order"
+    );
+    for (let i = 0; i < remainingCards.length; i++) {
+      remainingCards[i].order = i;
+      await remainingCards[i].save();
+    }
 
     res.status(200).json({ message: "Card deleted successfully" });
     return;

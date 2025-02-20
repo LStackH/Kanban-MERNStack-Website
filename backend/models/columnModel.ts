@@ -5,6 +5,9 @@ export interface IColumn extends Document {
   name: string;
   cards: mongoose.Types.ObjectId[]; // array of card ids
   boardId: mongoose.Types.ObjectId[]; // reference to the board-parent
+  order?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const ColumnSchema: Schema = new Schema(
@@ -16,6 +19,7 @@ const ColumnSchema: Schema = new Schema(
       ref: "Board",
       required: true,
     },
+    order: { type: Number, default: 0 }, // track the columns position
   },
   {
     timestamps: true,

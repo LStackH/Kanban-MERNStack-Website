@@ -27,6 +27,16 @@ export async function updateColumn(
   return response.data.column;
 }
 
+export async function updateColumnOrder(
+  boardId: string,
+  columns: { id: string; order: number }[]
+): Promise<IColumn[]> {
+  const response = await axiosInstance.put(`/columns/order/${boardId}`, {
+    columns,
+  });
+  return response.data.message;
+}
+
 export async function deleteColumn(columnId: string): Promise<void> {
   await axiosInstance.delete(`/columns/${columnId}`);
 }

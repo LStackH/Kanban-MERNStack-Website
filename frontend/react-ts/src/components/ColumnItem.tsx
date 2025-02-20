@@ -1,9 +1,10 @@
-// src/components/ColumnItem.tsx
-import { useState } from "react";
+// ColumnItem.tsx
+import { useState, useEffect } from "react";
 import { IColumn, ICard } from "../types/kanbanTypes";
 import { createCard } from "../api/cardApi";
 import { deleteColumn, updateColumn } from "../api/columnApi";
 import { CardItem } from "./CardItem";
+import { Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface ColumnItemProps {
   column: IColumn;
@@ -11,12 +12,15 @@ interface ColumnItemProps {
 }
 
 export function ColumnItem({ column, onDeleteColumn }: ColumnItemProps) {
-  // Local state for cards in this column
   const [cards, setCards] = useState<ICard[]>(column.cards);
-  // Local state for the column name
   const [name, setName] = useState<string>(column.name);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCards(column.cards);
+    setName(column.name);
+  }, [column.cards, column.name]);
 
   function toggleDropdown() {
     setDropdownOpen(!dropdownOpen);
@@ -38,7 +42,6 @@ export function ColumnItem({ column, onDeleteColumn }: ColumnItemProps) {
     if (!newName || newName.trim() === name) return;
     try {
       const updatedColumn = await updateColumn(column._id, { name: newName });
-      // Update local state so the UI reflects the new name
       setName(updatedColumn.name);
     } catch (error) {
       setError("Failed to update column");
@@ -49,7 +52,6 @@ export function ColumnItem({ column, onDeleteColumn }: ColumnItemProps) {
     if (window.confirm("Are you sure you want to delete this column?")) {
       try {
         await deleteColumn(column._id);
-        // Notify parent to remove this column from the list
         onDeleteColumn(column._id);
       } catch (error) {
         setError("Failed to delete column");
@@ -77,7 +79,7 @@ export function ColumnItem({ column, onDeleteColumn }: ColumnItemProps) {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={3}
                 d="M12 6v.01M12 12v.01M12 18v.01"
               />
             </svg>
@@ -116,18 +118,36 @@ export function ColumnItem({ column, onDeleteColumn }: ColumnItemProps) {
         </div>
       </div>
 
-      {/* Cards container */}
-      <div className="flex-1 p-2 overflow-y-auto">
-        {cards.map((card) => (
-          <CardItem
-            key={card._id}
-            card={card}
-            setCards={setCards}
-            columnId={column._id}
-          />
-        ))}
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-      </div>
+      {/* Cards container wrapped in a Droppable for cards */}
+      <Droppable droppableId={column._id} type="CARD">
+        {(provided) => (
+          <div
+            className="flex-1 p-2 overflow-y-auto"
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
+            {cards.map((card, index) => (
+              <Draggable key={card._id} draggableId={card._id} index={index}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                  >
+                    <CardItem
+                      card={card}
+                      setCards={setCards}
+                      columnId={column._id}
+                    />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+            {error && <div className="text-red-500 text-sm">{error}</div>}
+          </div>
+        )}
+      </Droppable>
 
       {/* Add new card button */}
       <div className="p-2 border-t border-gray-600">

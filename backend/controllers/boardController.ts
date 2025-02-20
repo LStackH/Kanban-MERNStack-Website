@@ -18,7 +18,8 @@ export const getBoards = async (req: AuthRequest, res: Response) => {
     // Fetch boards that belong to this user, and populate with columns and their cards
     const boards = await Board.find({ userId }).populate({
       path: "columns",
-      populate: { path: "cards" },
+      options: { sort: { order: 1 } }, // sort columns by order ascending
+      populate: { path: "cards", options: { sort: { order: 1 } } }, // sort cards by order ascending
     });
 
     res.status(200).json({ boards });
