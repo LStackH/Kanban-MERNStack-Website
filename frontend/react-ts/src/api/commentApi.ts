@@ -1,3 +1,5 @@
+// API hub for comment api calls
+
 import { axiosInstance } from "./axiosConfig";
 import { IComment } from "../types/kanbanTypes";
 

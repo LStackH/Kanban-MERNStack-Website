@@ -1,25 +1,34 @@
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import { LogoutButton } from "./Buttons/LogoutButton";
+import { useSearch } from "../context/SearchContext";
 
 function Navbar() {
-  const { token } = useAuth(); // read the token from context
+  const { token } = useAuth();
+  const { searchQuery, setSearchQuery } = useSearch();
 
   return (
     <nav className="bg-blue-950 p-4">
       <div className="container mx-auto flex items-center justify-between">
-        {/* Left side, title/logo */}
+        {/* Left Side: Title */}
         <Link to="/" className="text-xl font-bold text-white">
           MyKanban
         </Link>
 
-        {/* Right side, search/login/register/logout */}
-        <div className="space-x-4">
+        {/* Right Side: Search/Login&Logout/Register */}
+        <div className="flex items-center space-x-4">
           {token ? (
-            // If user is logged in, show logout
-            <LogoutButton />
+            <>
+              <input
+                type="text"
+                placeholder="Search cards..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="p-2 border rounded"
+              />
+              <LogoutButton />
+            </>
           ) : (
-            // If user isn't logged in, show login + register
             <>
               <Link to="/login" className="text-white hover:text-gray-300">
                 Login
@@ -35,5 +44,4 @@ function Navbar() {
   );
 }
 
-
-export default Navbar
+export default Navbar;

@@ -1,5 +1,4 @@
-// BoardView.tsx
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { IBoard, IColumn, ICard } from "../types/kanbanTypes";
 import { createColumn, updateColumnOrder } from "../api/columnApi";
 import { updateCardOrder, updateCard } from "../api/cardApi";
@@ -13,9 +12,11 @@ import {
 
 interface BoardViewProps {
   board: IBoard;
+  searchQuery: string;
 }
 
-export function BoardView({ board}: BoardViewProps) {
+// BoardView component, handles Drag&Drop functionality, columns
+export function BoardView({ board, searchQuery }: BoardViewProps) {
   const [columns, setColumns] = useState<IColumn[]>(board.columns);
   const [newColName, setNewColName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -36,19 +37,43 @@ export function BoardView({ board}: BoardViewProps) {
     }
   }
 
-  // Remove a column from state
   function handleDeleteColumn(deletedColumnId: string) {
     setColumns((prev) => prev.filter((col) => col._id !== deletedColumnId));
   }
 
-  // Update columns cards
-  function handleUpdateCards(columnId: string, newCards: ICard[]) {
-    setColumns(prev =>
-      prev.map(col => (col._id === columnId ? { ...col, cards: newCards } : col))
-    );
-  }
+  // Sets cards for columns, centralized state management for reordering with drag & drop, to ensure synchronization
+  const setCardsForColumn = useCallback(
+    (
+      columnId: string,
+      newCards: ICard[] | ((prev: ICard[]) => ICard[])
+    ) => {
+      setColumns((prev) =>
+        prev.map((col) =>
+          col._id === columnId
+            ? {
+                ...col,
+                cards:
+                  typeof newCards === "function"
+                    ? newCards(col.cards)
+                    : newCards,
+              }
+            : col
+        )
+      );
+    },
+    []
+  );
 
-  // onDragEnd handles both column and card drags.
+  // Filter cards based on searchQuery
+  const filteredColumns = columns.map((col) => ({
+    ...col,
+    cards: col.cards.filter((card: ICard) =>
+      card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      card.description.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+  }));
+
+  // onDragEnd handles both column and card drags
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
     const { source, destination, type } = result;
@@ -59,26 +84,27 @@ export function BoardView({ board}: BoardViewProps) {
       const [moved] = newColumns.splice(source.index, 1);
       newColumns.splice(destination.index, 0, moved);
       
-      // Update the order for each column based on new index
       newColumns.forEach((col, index) => {
         col.order = index;
       });
       setColumns(newColumns);
       
-      // Persist the new column order to the backend
       try {
         await updateColumnOrder(
           board._id,
-          newColumns.map(col => ({ id: col._id, order: col.order ?? 0 }))
+          newColumns.map((col) => ({ id: col._id, order: col.order ?? 0 }))
         );
       } catch (err) {
         console.error("Failed to update column order", err);
       }
     } else if (type === "CARD") {
       // --- CARD REORDERING ---
-      // Identify source and destination columns using droppableId
-      const sourceColIndex = columns.findIndex(col => col._id === source.droppableId);
-      const destColIndex = columns.findIndex(col => col._id === destination.droppableId);
+      const sourceColIndex = columns.findIndex(
+        (col) => col._id === source.droppableId
+      );
+      const destColIndex = columns.findIndex(
+        (col) => col._id === destination.droppableId
+      );
       if (sourceColIndex === -1 || destColIndex === -1) return;
       
       const sourceColumn = columns[sourceColIndex];
@@ -87,55 +113,51 @@ export function BoardView({ board}: BoardViewProps) {
       const [movedCard] = sourceCards.splice(source.index, 1);
       
       if (source.droppableId === destination.droppableId) {
-        // --- Reordering within the same column ---
         sourceCards.splice(destination.index, 0, movedCard);
         sourceCards.forEach((card, index) => {
           card.order = index;
         });
-        const updatedColumns = [...columns];
-        updatedColumns[sourceColIndex] = { ...sourceColumn, cards: sourceCards };
-        setColumns(updatedColumns);
+        const newColumns = [...columns];
+        newColumns[sourceColIndex] = { ...sourceColumn, cards: sourceCards };
+        setColumns(newColumns);
         
         try {
           await updateCardOrder(
             sourceColumn._id,
-            sourceCards.map(card => ({ id: card._id, order: card.order ?? 0 }))
+            sourceCards.map((card) => ({ id: card._id, order: card.order ?? 0 }))
           );
         } catch (err) {
           console.error("Failed to update card order", err);
         }
       } else {
-        // --- Moving a card between columns ---
         const destCards = Array.from(destColumn.cards);
         destCards.splice(destination.index, 0, movedCard);
-        // Update orders for cards in both columns
         sourceCards.forEach((card, index) => {
           card.order = index;
         });
         destCards.forEach((card, index) => {
           card.order = index;
         });
-        // Update the moved card's column membership
         movedCard.columnId = destColumn._id;
         
-        const updatedColumns = [...columns];
-        updatedColumns[sourceColIndex] = { ...sourceColumn, cards: sourceCards };
-        updatedColumns[destColIndex] = { ...destColumn, cards: destCards };
-        setColumns(updatedColumns);
+        const newColumns = [...columns];
+        newColumns[sourceColIndex] = { ...sourceColumn, cards: sourceCards };
+        newColumns[destColIndex] = { ...destColumn, cards: destCards };
+        setColumns(newColumns);
         
         try {
-          // Persist updated orders in the source column
           await updateCardOrder(
             sourceColumn._id,
-            sourceCards.map(card => ({ id: card._id, order: card.order ?? 0 }))
+            sourceCards.map((card) => ({ id: card._id, order: card.order ?? 0 }))
           );
-          // Persist updated orders in the destination column
           await updateCardOrder(
             destColumn._id,
-            destCards.map(card => ({ id: card._id, order: card.order ?? 0 }))
+            destCards.map((card) => ({ id: card._id, order: card.order ?? 0 }))
           );
-          // Additionally, update the moved card's columnId in the backend
-          await updateCard(movedCard._id, { newColumnId: destColumn._id, order: movedCard.order ?? 0 });
+          await updateCard(movedCard._id, {
+            newColumnId: destColumn._id,
+            order: movedCard.order ?? 0,
+          });
         } catch (err) {
           console.error("Failed to update card order across columns", err);
         }
@@ -146,8 +168,6 @@ export function BoardView({ board}: BoardViewProps) {
   return (
     <div className="p-4">
       <h1 className="text-2xl mb-4 text-white">Board: {board.name}</h1>
-
-      {/* Create Column Input and Button */}
       <div className="mb-4 flex items-center space-x-2">
         <input
           type="text"
@@ -165,8 +185,6 @@ export function BoardView({ board}: BoardViewProps) {
         </button>
         {error && <div className="text-red-500 ml-2">{error}</div>}
       </div>
-
-      {/* Wrap the columns in a DragDropContext */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable
           droppableId="columns-droppable"
@@ -174,12 +192,9 @@ export function BoardView({ board}: BoardViewProps) {
           type="COLUMN"
         >
           {(provided) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-            >
+            <div ref={provided.innerRef} {...provided.droppableProps}>
               <div className="flex flex-wrap gap-4">
-                {columns.map((col, index) => (
+                {filteredColumns.map((col, index) => (
                   <Draggable key={col._id} draggableId={col._id} index={index}>
                     {(provided) => (
                       <div
@@ -190,7 +205,7 @@ export function BoardView({ board}: BoardViewProps) {
                         <ColumnItem
                           column={col}
                           onDeleteColumn={handleDeleteColumn}
-                          onUpdateCards={handleUpdateCards}
+                          setCardsForColumn={setCardsForColumn}
                         />
                       </div>
                     )}

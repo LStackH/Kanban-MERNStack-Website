@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { IComment } from "../types/kanbanTypes";
 import { updateComment, deleteComment } from "../api/commentApi";
+import { InlineEdit } from "./InlineEdit";
 
 interface CommentItemProps {
   comment: IComment;
@@ -8,22 +9,9 @@ interface CommentItemProps {
   onUpdate: (updatedComment: IComment) => void;
 }
 
-// CommentItem, located inside a CardItem
+// Comments for cards, used in CardItem component
 export function CommentItem({ comment, onDelete, onUpdate }: CommentItemProps) {
-  const [text, setText] = useState(comment.text);
   const [error, setError] = useState<string | null>(null);
-
-  async function handleRename() {
-    const newText = prompt("Enter new comment text:", text);
-    if (!newText || newText.trim() === text) return;
-    try {
-      const updated = await updateComment(comment._id, { text: newText });
-      setText(updated.text);
-      onUpdate(updated);
-    } catch (err) {
-      setError("Failed to update comment");
-    }
-  }
 
   async function handleDelete() {
     if (window.confirm("Are you sure you want to delete this comment?")) {
@@ -38,15 +26,17 @@ export function CommentItem({ comment, onDelete, onUpdate }: CommentItemProps) {
 
   return (
     <div className="mb-2">
-      <div className="flex-auto justify-between items-center">
-        <p className="text-base font-extralight text-gray-300">{text}</p>
+      <div className="flex justify-between items-center">
+        <InlineEdit
+          value={comment.text}
+          onSave={async (newText) => {
+            const updated = await updateComment(comment._id, { text: newText });
+            onUpdate(updated);
+          }}
+          className="text-s font-extralight text-zinc-300"
+          inputClassName="border p-1 bg-gray-800 text-white text-xs w-full"
+        />
         <div className="flex space-x-1 mt-0.5">
-          <button
-            onClick={handleRename}
-            className="text-xs text-blue-300 hover:text-blue-500"
-          >
-            Rename
-          </button>
           <button
             onClick={handleDelete}
             className="text-xs text-red-300 hover:text-red-500"
@@ -55,7 +45,7 @@ export function CommentItem({ comment, onDelete, onUpdate }: CommentItemProps) {
           </button>
         </div>
       </div>
-      <div className="mt-1 text-xs font-extralight text-gray-500">
+      <div className="mt-1 text-xs text-gray-500">
         Created: {new Date(comment.createdAt).toLocaleString()} | Updated:{" "}
         {new Date(comment.updatedAt).toLocaleString()}
       </div>
