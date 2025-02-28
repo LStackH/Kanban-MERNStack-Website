@@ -60,7 +60,7 @@ export function CardItem({ card, setCards }: CardItemProps) {
       <div className="border-b border-gray-700 pb-2 mb-2">
         <div className="flex-auto justify-between items-center">
           <p className="text-xl font-semibold text-white">{title}</p>
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 mt-1">
             <button
               onClick={handleRename}
               className="text-xs text-blue-300 hover:text-blue-500"

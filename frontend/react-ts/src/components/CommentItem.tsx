@@ -40,7 +40,7 @@ export function CommentItem({ comment, onDelete, onUpdate }: CommentItemProps) {
     <div className="mb-2">
       <div className="flex-auto justify-between items-center">
         <p className="text-base font-extralight text-gray-300">{text}</p>
-        <div className="flex space-x-1">
+        <div className="flex space-x-1 mt-0.5">
           <button
             onClick={handleRename}
             className="text-xs text-blue-300 hover:text-blue-500"
