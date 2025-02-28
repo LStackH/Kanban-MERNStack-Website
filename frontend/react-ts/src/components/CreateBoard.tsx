@@ -6,6 +6,7 @@ interface CreateBoardProps {
   onCreated: (board: IBoard) => void;
 }
 
+// CreateBoard form, used to create the users board if they do not already have one
 export function CreateBoard({ onCreated }: CreateBoardProps) {
   const [boardName, setBoardName] = useState("");
 

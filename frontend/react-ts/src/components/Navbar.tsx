@@ -13,7 +13,7 @@ function Navbar() {
           MyKanban
         </Link>
 
-        {/* Right side, login/register/logout */}
+        {/* Right side, search/login/register/logout */}
         <div className="space-x-4">
           {token ? (
             // If user is logged in, show logout

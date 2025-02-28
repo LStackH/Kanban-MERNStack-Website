@@ -6,6 +6,7 @@ import adminRouter from "../routes/adminRoutes";
 import boardRouter from "../routes/boardRoutes";
 import columnRouter from "../routes/columnRoutes";
 import cardRouter from "../routes/cardRoutes";
+import commentRouter from "../routes/commentRoutes";
 import connectDB from "../config/db";
 
 const app: Express = express();
@@ -29,6 +30,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/boards", boardRouter);
 app.use("/api/columns", columnRouter);
 app.use("/api/cards", cardRouter);
+app.use("/api/comments", commentRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Hello World" });

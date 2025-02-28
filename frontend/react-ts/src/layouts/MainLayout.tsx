@@ -5,7 +5,6 @@ import Footer from "../components/Footer";
 function MainLayout() {
   return (
     <div className="flex flex-col min-h-screen bg-[#0e1a2b] text-white">
-    {/* Nav */}
     <Navbar />
 
     {/* Main content area */}
@@ -13,7 +12,6 @@ function MainLayout() {
       <Outlet />
     </main>
 
-    {/* Footer */}
     <Footer />
   </div>
   )

@@ -1,11 +1,22 @@
+// ---- Centralized HUB for the different types used in the frontend ----
+
+export interface IComment {
+  _id: string;
+  text: string;
+  cardId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ICard {
   _id: string;
   title: string;
   description: string;
   columnId: string;
   order?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  comments: IComment[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IColumn {

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Board from "../models/boardModel";
 import Column from "../models/columnModel";
 import User from "../models/userModel";
+import Comment from "../models/commentModel";
 import { AuthRequest } from "../middleware/authMiddleware";
 
 // @desc    Get all boards of the authenticated user
@@ -15,11 +16,15 @@ export const getBoards = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Fetch boards that belong to this user, and populate with columns and their cards
+    // Fetch boards that belong to this user, and populate with columns and their cards and comments
     const boards = await Board.find({ userId }).populate({
       path: "columns",
       options: { sort: { order: 1 } }, // sort columns by order ascending
-      populate: { path: "cards", options: { sort: { order: 1 } } }, // sort cards by order ascending
+      populate: {
+        path: "cards",
+        options: { sort: { order: 1 } }, // sort cards by order ascending
+        populate: { path: "comments", options: { sort: { createdAt: 1 } } },
+      },
     });
 
     res.status(200).json({ boards });

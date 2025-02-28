@@ -9,9 +9,11 @@ import { Droppable, Draggable } from "@hello-pangea/dnd";
 interface ColumnItemProps {
   column: IColumn;
   onDeleteColumn: (columnId: string) => void;
+  onUpdateCards: (columnId: string, newCards: ICard[]) => void;
 }
 
-export function ColumnItem({ column, onDeleteColumn }: ColumnItemProps) {
+// ColumnItem, located in BoardView. Handles the adding of cards, renaming & deletion of the column, and listing the cards inside of it.
+export function ColumnItem({ column, onDeleteColumn, onUpdateCards }: ColumnItemProps) {
   const [cards, setCards] = useState<ICard[]>(column.cards);
   const [name, setName] = useState<string>(column.name);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -31,7 +33,10 @@ export function ColumnItem({ column, onDeleteColumn }: ColumnItemProps) {
     if (!title?.trim()) return;
     try {
       const newCard = await createCard(column._id, title);
+      const updatedCards = [...cards, newCard];
       setCards((prev) => [...prev, newCard]);
+      // Inform the parent BoardView about the updated cards array:
+      onUpdateCards(column._id, updatedCards);
     } catch (err) {
       setError("Failed to add card");
     }
@@ -63,7 +68,7 @@ export function ColumnItem({ column, onDeleteColumn }: ColumnItemProps) {
     <div className="bg-gray-800 rounded shadow flex flex-col w-64">
       {/* Column header with name and dropdown */}
       <div className="flex justify-between items-center border-b border-gray-600 px-2 py-1">
-        <h2 className="font-bold text-lg text-white">{name}</h2>
+        <h2 className="font-bold text-2xl text-white">{name}</h2>
         <div className="relative">
           <button
             onClick={toggleDropdown}

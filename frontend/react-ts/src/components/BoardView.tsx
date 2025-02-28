@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { IBoard, IColumn, ICard } from "../types/kanbanTypes";
 import { createColumn, updateColumnOrder } from "../api/columnApi";
-import { updateCardOrder, updateCard } from "../api/cardApi"; // Import updateCard
+import { updateCardOrder, updateCard } from "../api/cardApi";
 import { ColumnItem } from "./ColumnItem";
 import {
   DragDropContext,
@@ -15,12 +15,11 @@ interface BoardViewProps {
   board: IBoard;
 }
 
-export function BoardView({ board }: BoardViewProps) {
+export function BoardView({ board}: BoardViewProps) {
   const [columns, setColumns] = useState<IColumn[]>(board.columns);
   const [newColName, setNewColName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [zoom, setZoom] = useState(1);
 
   async function handleAddColumn() {
     if (!newColName.trim()) return;
@@ -42,14 +41,11 @@ export function BoardView({ board }: BoardViewProps) {
     setColumns((prev) => prev.filter((col) => col._id !== deletedColumnId));
   }
 
-  function handleZoomIn() {
-    setZoom((prev) => Math.min(prev + 0.1, 1.0));
-  }
-  function handleZoomOut() {
-    setZoom((prev) => Math.max(prev - 0.1, 0.1));
-  }
-  function handleResetZoom() {
-    setZoom(1);
+  // Update columns cards
+  function handleUpdateCards(columnId: string, newCards: ICard[]) {
+    setColumns(prev =>
+      prev.map(col => (col._id === columnId ? { ...col, cards: newCards } : col))
+    );
   }
 
   // onDragEnd handles both column and card drags.
@@ -77,7 +73,6 @@ export function BoardView({ board }: BoardViewProps) {
         );
       } catch (err) {
         console.error("Failed to update column order", err);
-        // Optionally revert state or show an error message
       }
     } else if (type === "CARD") {
       // --- CARD REORDERING ---
@@ -171,29 +166,6 @@ export function BoardView({ board }: BoardViewProps) {
         {error && <div className="text-red-500 ml-2">{error}</div>}
       </div>
 
-      {/* Zoom Controls */}
-      <div className="mb-4 space-x-2">
-        <button
-          onClick={handleZoomOut}
-          className="px-3 py-1 bg-gray-400 hover:bg-gray-500"
-        >
-          -
-        </button>
-        <button
-          onClick={handleResetZoom}
-          className="px-3 py-1 bg-gray-400 hover:bg-gray-500"
-        >
-          100%
-        </button>
-        <button
-          onClick={handleZoomIn}
-          className="px-3 py-1 bg-gray-400 hover:bg-gray-500"
-        >
-          +
-        </button>
-        <span className="ml-2 text-white">Zoom: {Math.round(zoom * 100)}%</span>
-      </div>
-
       {/* Wrap the columns in a DragDropContext */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable
@@ -218,6 +190,7 @@ export function BoardView({ board }: BoardViewProps) {
                         <ColumnItem
                           column={col}
                           onDeleteColumn={handleDeleteColumn}
+                          onUpdateCards={handleUpdateCards}
                         />
                       </div>
                     )}
