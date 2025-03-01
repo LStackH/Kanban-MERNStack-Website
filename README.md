@@ -52,7 +52,7 @@ VITE_API_URL=http://localhost:{backend PORT}/api
 
 # User Manual
 ## Registration and Authentication
-New users without accents need to register via the Register page. They will need to fill out their username, email and password.
+New users without accounts need to register via the Register page. They will need to fill out their username, email and password.
 Users with accounts can use the login page and fill out their existing email and password information.
 
 ## Features
