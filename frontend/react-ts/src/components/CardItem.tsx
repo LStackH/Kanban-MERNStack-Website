@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ICard, IComment } from "../types/kanbanTypes";
 import { updateCard, deleteCard } from "../api/cardApi";
 import { createComment } from "../api/commentApi";
@@ -34,12 +34,22 @@ export function CardItem({ card, setCards }: CardItemProps) {
     if (!newCommentText.trim()) return;
     try {
       const newComment = await createComment(card._id, newCommentText);
+      // Update local comments state
       setComments((prev) => [...prev, newComment]);
       setNewCommentText("");
     } catch (err) {
       setError("Failed to add comment");
     }
   }
+
+  // Whenever local comments change, update the parent's card object
+  useEffect(() => {
+    setCards((prev) =>
+      prev.map((c) =>
+        c._id === card._id ? { ...c, comments } : c
+      )
+    );
+  }, [comments, card._id, setCards]);
 
   return (
     <div className="bg-gray-900 p-3 mb-2 rounded shadow">
@@ -59,13 +69,17 @@ export function CardItem({ card, setCards }: CardItemProps) {
             inputClassName="border p-1 bg-gray-800 text-white text-xl w-full"
           />
           <div className="flex space-x-2 mt-1">
-            <button onClick={handleDelete} className="text-xs text-red-300 hover:text-red-500">
+            <button
+              onClick={handleDelete}
+              className="text-xs text-red-300 hover:text-red-500"
+            >
               Delete
             </button>
           </div>
         </div>
         <div className="text-xs text-gray-500 mt-1">
-          Created: {new Date(card.createdAt).toLocaleString()} | Updated: {new Date(card.updatedAt).toLocaleString()}
+          Created: {new Date(card.createdAt).toLocaleString()} | Updated:{" "}
+          {new Date(card.updatedAt).toLocaleString()}
         </div>
       </div>
       {/* Comments Section */}
@@ -77,7 +91,9 @@ export function CardItem({ card, setCards }: CardItemProps) {
           }
           onUpdateComment={(updatedComment) =>
             setComments((prev) =>
-              prev.map((c) => (c._id === updatedComment._id ? updatedComment : c))
+              prev.map((c) =>
+                c._id === updatedComment._id ? updatedComment : c
+              )
             )
           }
         />
@@ -95,7 +111,10 @@ export function CardItem({ card, setCards }: CardItemProps) {
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
               />
-              <button onClick={handleAddComment} className="px-2 py-1 bg-blue-600 text-white text-xs">
+              <button
+                onClick={handleAddComment}
+                className="px-2 py-1 bg-blue-600 text-white text-xs"
+              >
                 Add
               </button>
             </div>

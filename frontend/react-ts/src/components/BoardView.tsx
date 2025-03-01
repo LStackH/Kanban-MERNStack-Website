@@ -73,7 +73,7 @@ export function BoardView({ board, searchQuery }: BoardViewProps) {
     ),
   }));
 
-  // onDragEnd handles both column and card drags
+  // Drag&Drop impelemntation, handles both column and card drags
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
     const { source, destination, type } = result;
