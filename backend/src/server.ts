@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, RequestHandler } from "express";
 import "dotenv/config";
 import cors from "cors";
+import path from "path";
 import authRouter from "../routes/authRoutes";
 import adminRouter from "../routes/adminRoutes";
 import boardRouter from "../routes/boardRoutes";
@@ -31,6 +32,20 @@ app.use("/api/boards", boardRouter);
 app.use("/api/columns", columnRouter);
 app.use("/api/cards", cardRouter);
 app.use("/api/comments", commentRouter);
+
+const staticPath = path.join(
+  __dirname,
+  "..",
+  "..",
+  "frontend",
+  "react-ts",
+  "dist"
+);
+app.use(express.static(staticPath));
+
+app.get("*", (req: Request, res: Response) => {
+  res.sendFile(path.join(staticPath, "index.html"));
+});
 
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Hello World" });

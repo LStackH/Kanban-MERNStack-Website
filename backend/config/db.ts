@@ -1,5 +1,6 @@
 import mongoose, { Connection } from "mongoose";
 
+// Establises connection with the MONGODB_URI, acquired from the .env file. Otherwise uses fallback database
 const connectDB = async () => {
   try {
     const mongoDB: string =

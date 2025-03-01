@@ -33,5 +33,4 @@ export interface IBoard {
   _id: string;
   name: string;
   columns: IColumn[];
-  // Possibly: owner, createdAt, updatedAt
 }
