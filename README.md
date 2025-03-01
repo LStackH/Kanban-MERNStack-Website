@@ -1,5 +1,8 @@
 # Author: Lukas Honka
-This repo includes both the backend and the frontend for this MERN-Stack, MyKanban website
+This repo includes both the backend and the frontend for this MERN-Stack, MyKanban website. This README contains the description of technology choices, installation guidelines and user manual. 
+
+
+There is a separate PDF file for Feature Point request & AI Declaration.
 
 # Kanban-MERN-Stack Website
 This website is a full-stack Kanban board website. The application allows registering and login, so that authenticated users can create their Kanban board, where they can add and remove columns, cards and reorder them with a drag and drop implementation. 
