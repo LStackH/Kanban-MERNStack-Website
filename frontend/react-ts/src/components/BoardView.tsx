@@ -74,21 +74,29 @@ export function BoardView({ board, searchQuery }: BoardViewProps) {
   }));
 
   // Drag&Drop impelemntation, handles both column and card drags
+  // handleDragEnd is called automatically by DragDropContext when user completes a drag operation
   const handleDragEnd = async (result: DropResult) => {
+    // If invalid destination, return
     if (!result.destination) return;
+
     const { source, destination, type } = result;
-  
+    
+    // Check if drag was for COLUMN or CARD
     if (type === "COLUMN") {
       // --- COLUMN REORDERING ---
+
+      // Create a copy of current columns array, remove the dragged column from its source, and insert it into the destinatation
       const newColumns = Array.from(columns);
       const [moved] = newColumns.splice(source.index, 1);
       newColumns.splice(destination.index, 0, moved);
       
+      // Update each columns order porperty
       newColumns.forEach((col, index) => {
         col.order = index;
       });
       setColumns(newColumns);
       
+      // Relay changes to the backend
       try {
         await updateColumnOrder(
           board._id,
@@ -99,6 +107,8 @@ export function BoardView({ board, searchQuery }: BoardViewProps) {
       }
     } else if (type === "CARD") {
       // --- CARD REORDERING ---
+
+      // Get source and destination columns indexes
       const sourceColIndex = columns.findIndex(
         (col) => col._id === source.droppableId
       );
@@ -107,20 +117,31 @@ export function BoardView({ board, searchQuery }: BoardViewProps) {
       );
       if (sourceColIndex === -1 || destColIndex === -1) return;
       
+      // Get the column objects
       const sourceColumn = columns[sourceColIndex];
       const destColumn = columns[destColIndex];
+
+      // Create copies of the cards, remove from the source
       const sourceCards = Array.from(sourceColumn.cards);
       const [movedCard] = sourceCards.splice(source.index, 1);
       
+      // If reordering cards within the same column...
       if (source.droppableId === destination.droppableId) {
+
+        // Insert the dragged card into its destination
         sourceCards.splice(destination.index, 0, movedCard);
+        
+        // Update order property for the cards
         sourceCards.forEach((card, index) => {
           card.order = index;
         });
+
+        // Create new columns array
         const newColumns = [...columns];
         newColumns[sourceColIndex] = { ...sourceColumn, cards: sourceCards };
         setColumns(newColumns);
         
+        // Relay changes to the backend
         try {
           await updateCardOrder(
             sourceColumn._id,
@@ -129,7 +150,10 @@ export function BoardView({ board, searchQuery }: BoardViewProps) {
         } catch (err) {
           console.error("Failed to update card order", err);
         }
-      } else {
+      } else { 
+        // If moving cards between columns...
+
+        // Copy destination columns cards, insert dragged card, update order property for the cards both in source and destination columns
         const destCards = Array.from(destColumn.cards);
         destCards.splice(destination.index, 0, movedCard);
         sourceCards.forEach((card, index) => {
@@ -138,13 +162,17 @@ export function BoardView({ board, searchQuery }: BoardViewProps) {
         destCards.forEach((card, index) => {
           card.order = index;
         });
+        
+        // Assing the new parent column to the card
         movedCard.columnId = destColumn._id;
         
+        // Create new columns array
         const newColumns = [...columns];
         newColumns[sourceColIndex] = { ...sourceColumn, cards: sourceCards };
         newColumns[destColIndex] = { ...destColumn, cards: destCards };
         setColumns(newColumns);
         
+        // Relay to backend
         try {
           await updateCardOrder(
             sourceColumn._id,
