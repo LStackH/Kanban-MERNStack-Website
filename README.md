@@ -9,22 +9,41 @@ This website is a full-stack Kanban board website. The application allows regist
 Column, card and comments can be changed with inline editing by double-clicking the text. Each card and comment comes with visible timestamps.
 
 # Technology choices
-## Backend
+### Backend
 * NodeJS & Express are used to provide server environment and routing
 * MongoDB is used as the database, to store user data, boards, columns, cards and comments. Mongoose library is used interact with MongoDB
 * TypeScript is used to enable static typing for all of the code, for improved maintainability and readability.
 
-## Frontend
+### Frontend
 * React with Vite is used to enable fast, modular and readable code for the frontend
 * Tailwind CSS is used for all of the styling, for consistency and ease of use
 * @hello-pangea/dnd library is used for the Drag & Drop implementation, due to it's up to date maintenance over it's root, @atlassian/react-beautiful-dnd.
 * Axios library is used to simplify API call codes from the frontend
 * TypScript is used in the frontend as well.
 
+
+
 # Application Architecture
 The project is divided into distinct folders:
 * `backend/` folder has the Express server, REST API routes, controllers and the Mongoose/MongoDB models
 * `frontend/react-ts/` folder has React application built with Vite.
+### Backend
+* `/src/server.ts` is the main file that starts the Express server. It establishes the db connection and does initial routing for API routes.
+* `/routes/` folder contains the more specific routing to the different controller functions. Each route file is grouped in relation to what that API call does, hence the names.
+* `/controllers/` folder contains the actual logic for handling the requests and responses. The controllers interact with the database to create, update, delete or retrieve data.
+* `/models/` folder contains the Mongoose schemas and models for the application data, so they get stored properly. Models exists for Users, Boards, Columns, Cards and Comments.
+* `/middleware/` folder contains custom middleware, like `authMiddleware.ts`, which is used to protect certain routes, so that only authenticated users can access them.
+* `/config/` folder contains configuration files, like `db.ts` used to establish connection to our database.
+### Frontend
+* `/src/` holds all the application code
+* `/src/api/` folder centralizes the different API calls from the frontend to the backend
+* `/src/components/` folder contains all the React components used for the site.
+* `/src/context/` folder hold different global state management files. `AuthContext.tsx` manages authenticate state, `SearchContext.tsx` provides a global search query state to filter out cards.
+* `/src/layouts/` folder centralizes the layouts, to wrap child routes to, to achieve consistency in the UI.
+* `/src/pages/` folder holds all the different pages that can be displayed.
+* `/src/types/` folder is used to centralize types for easy access throughout the code.
+
+
 
 # Installation Guide
 ## Requirements
